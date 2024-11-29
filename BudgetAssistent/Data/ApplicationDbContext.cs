@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using BudgetAssistent.Models;
 
 namespace BudgetAssistent.Data
 {
@@ -9,5 +10,7 @@ namespace BudgetAssistent.Data
             : base(options)
         {
         }
+        public DbSet<SavingsGoal> SavingsGoal { get; set; }
+        public DbSet<Expenses> Expenses { get; set; }
     }
 }

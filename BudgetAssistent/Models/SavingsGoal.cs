@@ -13,7 +13,6 @@ namespace BudgetAssistent.Models
         public double TargetAmount { get; set; }
         [Required]
         public DateTime TargetDate { get; set; }
-        [DataType(DataType.Date)]
         public double CurrentAmount { get; set; }
     }
 }

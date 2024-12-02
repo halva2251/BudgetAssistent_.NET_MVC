@@ -113,56 +113,44 @@ namespace BudgetAssistent.Controllers
         public JsonResult GetBudget()
         {
             var transactions = db.Expenses.ToList();
-            var expenses = transactions.Where(m => m.Type == ExpensesType.Expense).ToList();
-            var incomes = transactions.Where(m => m.Type == ExpensesType.Income).ToList();
-            List<object> iData = new List<object>();
+            var expenses = transactions.Where(m => m.Type == ExpensesType.Expense)
+                                      .OrderBy(m => m.Date)
+                                      .ToList();
+            var incomes = transactions.Where(m => m.Type == ExpensesType.Income)
+                                     .OrderBy(m => m.Date)
+                                     .ToList();
 
-            // Creating sample data
-            DataTable dt = new DataTable();
-            
-            dt.Columns.Add("Date", System.Type.GetType("System.String"));
-            dt.Columns.Add("Expenses", System.Type.GetType("System.Double"));
-            dt.Columns.Add("Income", System.Type.GetType("System.Double"));
-            expenses = expenses.OrderBy(m => m.Date).ToList();
-            foreach (var expence in expenses)
+            // Get all unique dates
+            var allDates = transactions.Select(t => t.Date)
+                                      .Distinct()
+                                      .OrderBy(d => d)
+                                      .ToList();
+
+            // Create lists for chart data
+            var dates = new List<string>();
+            var expenseAmounts = new List<double>();
+            var incomeAmounts = new List<double>();
+
+            // For each date, get the corresponding expense and income
+            foreach (var date in allDates)
             {
-                DataRow dr = dt.NewRow();
-                dr["Date"] = expence.Date;
-                dr["Expenses"] = expence.Amount;
-                dt.Rows.Add(dr);
-            }
-            incomes = incomes.OrderBy(m => m.Date).ToList();
-            foreach (var income in incomes)
-            {
-                DataRow dr = dt.NewRow();
-                dr["Date"] = income.Date;
-                dr["Income"] = income.Amount;
-                dt.Rows.Add(dr);
+                dates.Add(date.ToString("MM/dd/yyyy")); // Or whatever date format you prefer
+
+                var expenseAmount = expenses.FirstOrDefault(e => e.Date == date)?.Amount ?? 0;
+                var incomeAmount = incomes.FirstOrDefault(i => i.Date == date)?.Amount ?? 0;
+
+                expenseAmounts.Add(expenseAmount);
+                incomeAmounts.Add(incomeAmount);
             }
 
-            //DataRow dr = dt.NewRow();
-            //dr["Date"] = "Sam";
-            //dr["Amount"] = 123;
-            //dt.Rows.Add(dr);
+            var chartData = new List<object>
+    {
+        dates,              // Labels (dates) - will be aData[0]
+        expenseAmounts,     // First dataset (expenses) - will be aData[1]
+        incomeAmounts      // Second dataset (incomes) - will be aData[2]
+    };
 
-            //dr = dt.NewRow();
-            //dr["Date"] = "Alex";
-            //dr["Amount"] = 456;
-            //dt.Rows.Add(dr);
-
-            //dr = dt.NewRow();
-            //dr["Date"] = "Michael";
-            //dr["Amount"] = 587;
-            //dt.Rows.Add(dr);
-
-            // Looping and extracting each DataColumn to List<Object>
-            foreach (DataColumn dc in dt.Columns)
-            {
-                List<object> x = (from DataRow drr in dt.Rows select drr[dc.ColumnName]).ToList();
-                iData.Add(x);
-            }
-            // Source data returned as JSON
-            return Json(iData);
+            return Json(chartData);
         }
     }
 }

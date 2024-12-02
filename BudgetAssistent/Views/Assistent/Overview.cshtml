@@ -1,26 +1,30 @@
 ﻿<div style="font-family: Corbel; font-size: small; text-align: center;" class="row">
-    <div style="width: 100%; height: 100%;">
-        <canvas id="myChart" style="padding: 0; margin: auto; display: block;"></canvas>
+    <div style="width: 100%; height: 500px;">
+        <canvas id="myChart" style="padding: 0; margin: auto; display: block; width: 100%; height: 100%;"></canvas>
+    </div>
+    <div style="margin-top: 20px;">
+        <a asp-action="Browse" class="btn btn-primary">Back to List</a>
     </div>
 </div>
 <script>
-        $(document).ready(function() {
+    $(document).ready(function() {
         console.log("DOM is ready!");
-         $.ajax({
-        type: "POST",
-        url: "/Assistent/GetBudget",
-        contentType: "application/json; charset=utf-8",
-        dataType: "json",
-        success: function (chData) {
-            var aData = chData;
-            console.log(aData);
-            var aLabels = aData[0];
-            var aDatasets1 = aData[1];
-            var aDatasets2 = aData[2];
-            var dataT = {
+
+        const loadingDiv = $('<div id="chartLoading">Loading chart data...</div>');
+        $('#myChart').before(loadingDiv);
+
+        function initializeChart(chData) {
+            const aData = chData;
+            console.log('Chart data received:', aData);
+
+            const aLabels = aData[0];
+            const aDatasets1 = aData[1];
+            const aDatasets2 = aData[2];
+
+            const dataT = {
                 labels: aLabels,
                 datasets: [{
-                    label: "Test Data",
+                    label: "Expenses", 
                     data: aDatasets1,
                     fill: false,
                     backgroundColor: [
@@ -44,7 +48,7 @@
                     borderWidth: 1
                 },
                 {
-                    label: "Test Data",
+                    label: "Incomes", 
                     data: aDatasets2,
                     fill: false,
                     backgroundColor: [
@@ -66,26 +70,49 @@
                         "rgb(201, 203, 207)"
                     ],
                     borderWidth: 1
-                }
-                ]
+                }]
             };
-            var ctx = $("#myChart").get(0).getContext("2d");
-            var myNewChart = new Chart(ctx, {
+
+            const ctx = $("#myChart").get(0).getContext("2d");
+            new Chart(ctx, {
                 type: 'line',
                 data: dataT,
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     title: { display: true, text: 'CHART.JS DEMO CHART' },
                     legend: { position: 'bottom' },
                     scales: {
-                        xAxes: [{ gridLines: { display: false }, display: true, scaleLabel: { display: false, labelString: '' } }],
-                        yAxes: [{ gridLines: { display: false }, display: true, scaleLabel: { display: false, labelString: '' }, ticks: { stepSize: 50, beginAtZero: true } }]
+                        xAxes: [{
+                            gridLines: { display: false },
+                            display: true,
+                            scaleLabel: { display: false, labelString: '' }
+                        }],
+                        yAxes: [{
+                            gridLines: { display: false },
+                            display: true,
+                            scaleLabel: { display: false, labelString: '' },
+                            ticks: { stepSize: 200, beginAtZero: true }
+                        }]
                     }
                 }
             });
-        }
-    });
-    });
 
-   
+            $('#chartLoading').remove();
+        }
+
+        $.ajax({
+            type: "POST",
+            url: "/Assistent/GetBudget",
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function(chData) {
+                initializeChart(chData);
+            },
+            error: function(xhr, status, error) {
+                console.error('Error loading chart data:', error);
+                $('#chartLoading').html('Error loading chart data. Please try refreshing the page.');
+            }
+        });
+    });
 </script>
